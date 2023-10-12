@@ -1,4 +1,4 @@
-package warning
+package main
 
 import (
 	"encoding/json"
@@ -56,4 +56,14 @@ func (s SlackWarning) Show(message string) {
 		io.ReadAll(resp.Body)
 		defer resp.Body.Close()
 	}
+}
+
+func main() {
+	var warn Warning
+
+	warn = &ConsoleWarning{}
+	warn.Show("console Warning")
+
+	warn = &DesktopWarning{}
+	warn.Show("desktop Warning")
 }
