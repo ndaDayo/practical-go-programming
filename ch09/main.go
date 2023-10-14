@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -31,8 +32,8 @@ func main() {
 
 func fetchAllUser(ctx context.Context) {
 	type User struct {
-		UserID   string
-		UserName string
+		UserID   string `json:"user_id"`
+		UserName string `json:"user_name"`
 	}
 
 	rows, err := db.QueryContext(
@@ -71,5 +72,10 @@ func fetchAllUser(ctx context.Context) {
 		log.Fatalf("scan close: %v", err)
 	}
 
-	fmt.Println(users)
+	jsonData, err := json.MarshalIndent(users, "", " ")
+	if err != nil {
+		log.Fatalf("json marshaling failed: %v", err)
+	}
+
+	fmt.Println(string(jsonData))
 }
