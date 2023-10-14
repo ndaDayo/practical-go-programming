@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 )
@@ -17,12 +18,12 @@ func GetTransactionAmountHandler(w http.ResponseWriter, r *http.Request) (float3
 	transactionID := r.URL.Query().Get("transaction")
 	amount, err := getTransactionAmount(transactionID)
 	if err != nil {
-		switch err := err.(type) {
-		case transientError:
+		if errors.As(err, &transientError{}) {
 			http.Error(w, err.Error(), http.StatusServiceUnavailable)
-		default:
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			return 0, err
 		}
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return 0, err
 	}
 
 	return amount, nil
@@ -35,7 +36,7 @@ func getTransactionAmount(transactionID string) (float32, error) {
 
 	amount, err := getTransactionAmountFromDB(transactionID)
 	if err != nil {
-		return 0, transientError{err: err}
+		return 0, fmt.Errorf("failed to get transaction %s: %w", transactionID, err)
 	}
 
 	return amount, nil
