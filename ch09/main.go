@@ -28,13 +28,16 @@ func main() {
 	}
 
 	fetchAllUser(ctx)
+
+	fetchUser(ctx, "user001")
+}
+
+type User struct {
+	UserID   string `json:"user_id"`
+	UserName string `json:"user_name"`
 }
 
 func fetchAllUser(ctx context.Context) {
-	type User struct {
-		UserID   string `json:"user_id"`
-		UserName string `json:"user_name"`
-	}
 
 	rows, err := db.QueryContext(
 		ctx,
@@ -73,6 +76,35 @@ func fetchAllUser(ctx context.Context) {
 	}
 
 	jsonData, err := json.MarshalIndent(users, "", " ")
+	if err != nil {
+		log.Fatalf("json marshaling failed: %v", err)
+	}
+
+	fmt.Println(string(jsonData))
+}
+
+func fetchUser(ctx context.Context, userID string) {
+	var (
+		userName string
+	)
+
+	row := db.QueryRowContext(
+		ctx,
+		`SELECT user_id, user_name FROM users WHERE user_id = $1;`,
+		userID,
+	)
+
+	err := row.Scan(&userID, &userName)
+
+	if err != nil {
+		log.Fatalf("query row(user_id=%s): %v", userID, err)
+	}
+
+	u := User{
+		UserID:   userID,
+		UserName: userName,
+	}
+	jsonData, err := json.MarshalIndent(u, "", " ")
 	if err != nil {
 		log.Fatalf("json marshaling failed: %v", err)
 	}
