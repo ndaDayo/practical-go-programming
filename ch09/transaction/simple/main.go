@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"log"
+	"os"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
@@ -13,6 +14,12 @@ type Service struct {
 }
 
 func main() {
+	if len(os.Args) < 2 {
+		log.Fatalf("Usage: %s <user_id>", os.Args[0])
+		return
+	}
+
+	userID := os.Args[1]
 	dbConn, err := sql.Open("pgx", "host=localhost port=5432 user=testuser dbname=testdb password=pass sslmode=disable")
 	if err != nil {
 		log.Fatal(err)
@@ -21,7 +28,7 @@ func main() {
 	s := &Service{db: dbConn}
 	ctx := context.Background()
 
-	if err := s.UpdateUser(ctx, "user001"); err != nil {
+	if err := s.UpdateUser(ctx, userID); err != nil {
 		log.Fatalf("Update User failed: %v", err)
 	}
 
